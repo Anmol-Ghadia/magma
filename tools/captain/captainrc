@@ -32,4 +32,6 @@ FUZZERS=(aflplusplus)
 # [fuzzer_TARGETS]: an array of target names (from magma/targets/*) to fuzz with
 # `fuzzer` (default: all targets)
 aflplusplus_TARGETS=(libpng)
+
+# TODO: Should this be an array?
 aflplusplus_HARNESSES=(custom)
