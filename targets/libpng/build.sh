@@ -18,8 +18,10 @@ fi
 cd "$TARGET/repo"
 autoreconf -f -i
 ./configure --with-libpng-prefix=MAGMA_ --disable-shared
+echo "building libpng with CC=($CC) and CXX=($CXX)"
+export AFL_DEBUG=1
 make -j$(nproc) clean
-make -j$(nproc) libpng16.la
+make -j$(nproc) libpng16.la > build_output.log 2>&1
 
 cp .libs/libpng16.a "$OUT/"
 
@@ -43,6 +45,7 @@ if [ ! -z "$HARNESSES" ]; then
   done
 
 else
+  echo "using OSS-FUZZ harness"
   # build libpng_read_fuzzer.
   $CXX $CXXFLAGS -std=c++11 -I. \
        contrib/oss-fuzz/libpng_read_fuzzer.cc \

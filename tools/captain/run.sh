@@ -114,6 +114,7 @@ start_campaign()
             "$MAGMA"/tools/captain/extract.sh
         fi
 
+	sudo chown -R "$(id -u):$(id -g)" "$SHARED"
         if [ -z $NO_ARCHIVE ]; then
             # only one tar job runs at a time, to prevent out-of-storage errors
             mutex $MUX_TAR \
