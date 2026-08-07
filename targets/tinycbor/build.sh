@@ -23,10 +23,10 @@ mkdir -p $WORK
 cd $WORK
 
 cmake ../repo
-echo "building tinycbor with CC=($CC) and CXX=($CXX)"
+echo "building tinycbor with CC=($CC) and CXX=($CXX). Build output at SHARED=($SHARED)"
 export AFL_DEBUG=1
 make -j$(nproc) clean
-make -j$(nproc) tinycbor > build_output.log 2>&1
+make -j$(nproc) tinycbor > "$OUT/build_output.log" 2>&1
 
 cp libtinycbor.a "$OUT/"
 

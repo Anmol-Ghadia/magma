@@ -27,6 +27,12 @@ export AFL_MAP_SIZE=256000
 export AFL_DRIVER_DONT_DEFER=1
 export AFL_I_DONT_CARE_ABOUT_MISSING_CRASHES=1
 
+# move build_output.log to shared directory
+if [ -e "$OUT/afl/build_output.log" ]; then
+    echo "Moved build_output.log"
+    mv "$OUT/afl/build_output.log" $SHARED
+fi
+
 sleep $SLEEP_TIME
 "$FUZZER/repo/afl-fuzz" -i "$SEEDS" -o "$SHARED/findings" \
     "${flag_cmplog[@]}" -d \
