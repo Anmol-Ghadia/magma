@@ -86,5 +86,5 @@ ENV LIBS -l:magma.o -lrt
 ENV LDFLAGS -L"${OUT}" -g
 
 RUN ${FUZZER}/instrument.sh
-
+ENV SLEEP_TIME 0
 ENTRYPOINT "${MAGMA}/run.sh"
