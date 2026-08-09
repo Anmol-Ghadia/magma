@@ -21,7 +21,9 @@ autoreconf -f -i
 echo "building libpng with CC=($CC) and CXX=($CXX)"
 export AFL_DEBUG=1
 make -j$(nproc) clean
-make -j$(nproc) libpng16.la > build_output.log 2>&1
+script -q -e -c "make libpng16.la" "$OUT/build_output.log"
+# script instead of direct make because afl does not print the # of instrumented
+# locations unless a stderr is attached
 
 cp .libs/libpng16.a "$OUT/"
 
@@ -37,11 +39,20 @@ if [ ! -z "$HARNESSES" ]; then
     exit 1
   fi
 
+  # TODO: find a better fix
+  # both the lines below remove libAFLDriver from the archive as it should only
+  # be linked once at the final stage when linking the harness.
+  # The exported $LIBS currently also adds libAFLDriver archive inside the
+  # library archive so we get error when compiling the harness
+  ar d .libs/libpng16.a libAFLDriver.a
+
   echo "Building custom harnesses"
   for HARNESS in $HARNESS_DIR/*.c; do
     NAME=$(basename $HARNESS .c)
     $RAW_CC -I. -c $HARNESS -o "$OUT/$NAME.o"
-    $CC "$OUT/$NAME.o" -o "$OUT/$NAME" $LDFLAGS .libs/libpng16.a $LIBS -lz
+    $CC "$OUT/$NAME.o" -o "$OUT/$NAME" \
+	    -Wl,--whole-archive .libs/libpng16.a -Wl,--no-whole-archive \
+	    $LDFLAGS $LIBS -lz
   done
 
 else
