@@ -33,3 +33,16 @@ This fork adds support for _"default"_ seeds:
 1. Otherwise use `$TARGET/corpus/default`.
 
 This is so we don't have to duplicate seeds N times for all N harnesses we might generate.
+
+# Custom Harness tracker:
+|Library|Status|
+|---|---|
+|tinycbor| DONE|
+|libpng|in-progress|
+|sqlite3|DONE|
+|libtiff|TODO|
+|libaom|in-progress|
+|...|...|
+
+# TODOs
+1) minor modification for harness building part of `libpng/build.sh`

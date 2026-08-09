@@ -26,7 +26,10 @@ cmake ../repo
 echo "building tinycbor with CC=($CC) and CXX=($CXX). Build output at SHARED=($SHARED)"
 export AFL_DEBUG=1
 make -j$(nproc) clean
-make -j$(nproc) tinycbor > "$OUT/build_output.log" 2>&1
+#make -j$(nproc) tinycbor > "$OUT/build_output.log" 2>&1
+script -q -e -c "make" "$OUT/build_output.log"
+# script instead of direct make because afl does not print the # of instrumented
+# locations unless a stderr is attached
 
 cp libtinycbor.a "$OUT/"
 
@@ -46,7 +49,9 @@ if [ ! -z "$HARNESSES" ]; then
   for HARNESS in $HARNESS_DIR/*.c; do
     NAME=$(basename $HARNESS .c)
     $RAW_CC -I"$TARGET/repo/src" -I. -c $HARNESS -o "$OUT/$NAME.o"
-    $CC "$OUT/$NAME.o" -o "$OUT/$NAME" $LDFLAGS "$OUT/libtinycbor.a" $LIBS
+    $CC "$OUT/$NAME.o" -o "$OUT/$NAME" \
+	    -Wl,--whole-archive "$OUT/libtinycbor.a" -Wl,--no-whole-archive \
+	    $LDFLAGS $LIBS
   done
 
 else
