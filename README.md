@@ -38,7 +38,7 @@ This is so we don't have to duplicate seeds N times for all N harnesses we might
 |Library|Status|
 |---|---|
 |tinycbor| DONE|
-|libpng|in-progress|
+|libpng|DONE|
 |sqlite3|DONE|
 |libtiff|DONE|
 |libaom|in-progress|
