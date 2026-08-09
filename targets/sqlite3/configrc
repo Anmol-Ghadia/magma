@@ -1,1 +1,1 @@
-PROGRAMS=(sqlite3_fuzz)
+PROGRAMS=(sqlite3_harness_159)
