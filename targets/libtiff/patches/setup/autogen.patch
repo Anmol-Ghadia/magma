@@ -1,0 +1,11 @@
+--- a/autogen.sh
++++ b/autogen.sh
+@@ -11,7 +11,7 @@ for file in config.guess config.sub
+ do
+     echo "$0: getting $file..."
+     wget -q --timeout=5 -O config/$file.tmp \
+-      "https://git.savannah.gnu.org/cgit/config.git/plain/${file}" \
++      "https://raw.githubusercontent.com/gcc-mirror/gcc/master/${file}" \
+       && mv config/$file.tmp config/$file \
+       && chmod a+x config/$file
+     retval=$?

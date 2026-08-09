@@ -40,9 +40,10 @@ This is so we don't have to duplicate seeds N times for all N harnesses we might
 |tinycbor| DONE|
 |libpng|in-progress|
 |sqlite3|DONE|
-|libtiff|TODO|
+|libtiff|DONE|
 |libaom|in-progress|
 |...|...|
 
 # TODOs
 1) minor modification for harness building part of `libpng/build.sh`
+1) libaom shows no instrumentation found
