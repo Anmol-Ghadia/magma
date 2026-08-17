@@ -33,6 +33,7 @@ if [ ! -z "$HARNESSES" ]; then
   # TODO(Mayant): Do I want to keep this configurable? I need a non-AFL C compiler
   # here, OR use an instrumentation denylist.
   RAW_CC="clang"
+  RAW_CXX="clang++"
 
   if [ ! -d "$HARNESS_DIR" ]; then
     echo "harness directory $HARNESS_DIR does not exist."
@@ -47,13 +48,32 @@ if [ ! -z "$HARNESSES" ]; then
   ar d .libs/libpng16.a libAFLDriver.a
 
   echo "Building custom harnesses"
-  for HARNESS in $HARNESS_DIR/*.c; do
-    NAME=$(basename $HARNESS .c)
-    $RAW_CC -I. -c $HARNESS -o "$OUT/$NAME.o"
-    $CC "$OUT/$NAME.o" -o "$OUT/$NAME" \
-	    -Wl,--whole-archive .libs/libpng16.a -Wl,--no-whole-archive \
-	    $LDFLAGS $LIBS -lz
-  done
+  for HARNESS in "$HARNESS_DIR"/*.c "$HARNESS_DIR"/*.cc "$HARNESS_DIR"/*.cpp; do
+	  [ -e "$HARNESS" ] || continue   # skip if a glob pattern matched nothing
+
+	  EXT="${HARNESS##*.}"
+	  NAME=$(basename "$HARNESS" ".$EXT")
+
+	  case "$EXT" in
+		  c)
+			  COMPILE_CC="$RAW_CC"
+			  LINK_CC="$CC"
+			  ;;
+		  cc|cpp)
+			  COMPILE_CC="$RAW_CXX"
+			  LINK_CC="$CXX"
+			  ;;
+		  *)
+			  echo "Unknown extension for $HARNESS, skipping"
+			  continue
+			  ;;
+	  esac
+
+	  "$COMPILE_CC" -I. -c "$HARNESS" -o "$OUT/$NAME.o"
+	  "$LINK_CC" "$OUT/$NAME.o" -o "$OUT/$NAME" \
+		  -Wl,--whole-archive .libs/libpng16.a -Wl,--no-whole-archive \
+		  $LDFLAGS $LIBS -lz
+	  done
 
 else
   echo "using OSS-FUZZ harness"
