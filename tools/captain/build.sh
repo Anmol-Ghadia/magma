@@ -16,6 +16,10 @@ if [ -z $FUZZER ] || [ -z $TARGET ]; then
     echo '$FUZZER and $TARGET must be specified as environment variables.'
     exit 1
 fi
+# base image contains compiled aflplusplus + afl compiled library
+BASE_IMG_NAME="flare-$TARGET:latest"
+REMOTE_BASE_IMG="anmolg26/$BASE_IMG_NAME"
+# this image is built on top of base image and contains the harness files
 IMG_NAME="magma/$FUZZER/$TARGET"
 MAGMA=${MAGMA:-"$(cd "$(dirname "${BASH_SOURCE[0]}")/../../" >/dev/null 2>&1 \
     && pwd)"}
@@ -45,9 +49,21 @@ if [ ! -z $HARNESSES ]; then
   harness_flag="--build-arg HARNESSES=$HARNESSES"
 fi
 
+if [ "$BUILD_BASE" = "1" ]; then
+    set -x
+    docker build -t "$BASE_IMG_NAME" \
+        -f "$MAGMA/docker/Dockerfile.base" "$MAGMA"
+    set +x
+else
+    set -x
+    docker pull "$REMOTE_BASE_IMG"
+    set +x
+    BASE_IMG_NAME="$REMOTE_BASE_IMG"
+fi
+
 set -x
-# TODO(Mayant): Should we pass in GROUP_ID and USER_ID?
 docker build -t "$IMG_NAME" \
+    --build-arg base_img_name="$BASE_IMG_NAME" \
     --build-arg fuzzer_name="$FUZZER" \
     --build-arg target_name="$TARGET" \
     $mode_flag $isan_flag $harden_flag $harness_flag \
