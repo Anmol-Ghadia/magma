@@ -67,7 +67,8 @@ USER magma:magma
 COPY --chown=magma:magma ${magma_root}/${target_path}/corpus ${TARGET}/corpus
 COPY --chown=magma:magma ${magma_root}/${target_path}/fetch.sh ${TARGET}/fetch.sh
 RUN ${TARGET}/fetch.sh
-COPY --chown=magma:magma ${magma_root}/${target_path}/patches ${TARGET}/patches
+# copy patches if they exist
+COPY --chown=magma:magma ${magma_root}/${target_path}/patche[s] ${TARGET}/patches
 RUN ${MAGMA}/apply_patches.sh
 
 ## Configuration parameters
