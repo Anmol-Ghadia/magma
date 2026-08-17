@@ -60,10 +60,15 @@ ARG target_path=targets/${target_name}
 ENV TARGET 	${MAGMA_R}/${target_path}
 USER root:root
 RUN mkdir -p ${TARGET} && chown magma:magma ${TARGET}
-COPY --chown=magma:magma ${magma_root}/${target_path} ${TARGET}/
+#COPY --chown=magma:magma ${magma_root}/${target_path} ${TARGET}/
+COPY --chown=magma:magma ${magma_root}/${target_path}/preinstall.sh ${TARGET}/preinstall.sh
 RUN ${TARGET}/preinstall.sh
 USER magma:magma
+COPY --chown=magma:magma ${magma_root}/${target_path}/corpus ${TARGET}/corpus
+COPY --chown=magma:magma ${magma_root}/${target_path}/fetch.sh ${TARGET}/fetch.sh
 RUN ${TARGET}/fetch.sh
+# copy patches if they exist
+COPY --chown=magma:magma ${magma_root}/${target_path}/patche[s] ${TARGET}/patches
 RUN ${MAGMA}/apply_patches.sh
 
 ## Configuration parameters
@@ -85,6 +90,11 @@ ENV CXXFLAGS ${BUILD_FLAGS}
 ENV LIBS -l:magma.o -lrt
 ENV LDFLAGS -L"${OUT}" -g
 
-RUN ${FUZZER}/instrument.sh
+COPY --chown=magma:magma ${magma_root}/${target_path}/build_lib.sh ${TARGET}/build_lib.sh
+RUN ${FUZZER}/instrument_lib.sh
+COPY --chown=magma:magma ${magma_root}/${target_path}/build_harness.sh ${TARGET}/build_harness.sh
+COPY --chown=magma:magma ${magma_root}/${target_path}/configrc ${TARGET}/configrc
+COPY --chown=magma:magma ${magma_root}/${target_path}/custom ${TARGET}/custom
+RUN ${FUZZER}/instrument_harness.sh
 ENV SLEEP_TIME 0
 ENTRYPOINT "${MAGMA}/run.sh"

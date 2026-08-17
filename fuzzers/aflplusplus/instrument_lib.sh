@@ -15,7 +15,7 @@ export CC="$FUZZER/repo/afl-clang-fast"
 export CXX="$FUZZER/repo/afl-clang-fast++"
 export AS="llvm-as"
 
-export LIBS="$LIBS -lc++ -lc++abi -lm $FUZZER/repo/utils/aflpp_driver/libAFLDriver.a"
+export LIBS="$LIBS -lc++ -lc++abi -lm"
 
 # AFL++'s driver is compiled against libc++
 export CXXFLAGS="$CXXFLAGS -stdlib=libc++"
@@ -26,7 +26,7 @@ export CXXFLAGS="$CXXFLAGS -stdlib=libc++"
     export LDFLAGS="$LDFLAGS -L$OUT"
 
     "$MAGMA/build.sh"
-    "$TARGET/build.sh"
+    "$TARGET/build_lib.sh"
 )
 
 # Build the CmpLog instrumented version
@@ -39,7 +39,7 @@ export CXXFLAGS="$CXXFLAGS -stdlib=libc++"
     export AFL_LLVM_CMPLOG=1
 
     "$MAGMA/build.sh"
-    "$TARGET/build.sh"
+    "$TARGET/build_lib.sh"
 )
 
 # NOTE: We pass $OUT directly to the target build.sh script, since the artifact

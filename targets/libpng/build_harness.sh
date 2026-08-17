@@ -16,16 +16,7 @@ fi
 
 # build the libpng library
 cd "$TARGET/repo"
-autoreconf -f -i
-./configure --with-libpng-prefix=MAGMA_ --disable-shared
-echo "building libpng with CC=($CC) and CXX=($CXX)"
 export AFL_DEBUG=1
-make -j$(nproc) clean
-script -q -e -c "make libpng16.la" "$OUT/build_output.log"
-# script instead of direct make because afl does not print the # of instrumented
-# locations unless a stderr is attached
-
-cp .libs/libpng16.a "$OUT/"
 
 if [ ! -z "$HARNESSES" ]; then
   HARNESS_DIR="$TARGET/$HARNESSES"
@@ -39,13 +30,6 @@ if [ ! -z "$HARNESSES" ]; then
     echo "harness directory $HARNESS_DIR does not exist."
     exit 1
   fi
-
-  # TODO: find a better fix
-  # both the lines below remove libAFLDriver from the archive as it should only
-  # be linked once at the final stage when linking the harness.
-  # The exported $LIBS currently also adds libAFLDriver archive inside the
-  # library archive so we get error when compiling the harness
-  ar d .libs/libpng16.a libAFLDriver.a
 
   echo "Building custom harnesses"
   for HARNESS in "$HARNESS_DIR"/*.c "$HARNESS_DIR"/*.cc "$HARNESS_DIR"/*.cpp; do

@@ -1,1 +1,1 @@
-PROGRAMS=(libpng_read_fuzzer)
+PROGRAMS=()
