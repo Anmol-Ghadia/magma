@@ -92,4 +92,7 @@ fi
 
 echo "Campaign terminated at $(date '+%F %R')"
 
+timeout $TIMEOUT "$FUZZER/coverage.sh"
+echo "Coverage generation completed at $(date '+%F %R')"
+
 kill $(jobs -p)
