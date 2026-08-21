@@ -52,7 +52,10 @@ fi
 if [ "$BUILD_BASE" = "1" ]; then
     set -x
     docker build -t "$BASE_IMG_NAME" \
-        -f "$MAGMA/docker/Dockerfile.base" "$MAGMA"
+	    --build-arg fuzzer_name="$FUZZER" \
+	    --build-arg target_name="$TARGET" \
+	    $mode_flag $isan_flag $harden_flag $harness_flag \
+	    -f "$MAGMA/docker/Dockerfile.base" "$MAGMA"
     set +x
 else
     set -x
