@@ -51,7 +51,7 @@ if [ ! -z "$HARNESSES" ]; then
 			  ;;
 	  esac
 
-	  $COMPILE_CC -I"$WORK/include" -I. \
+	  $COMPILE_CC -I"$WORK/include" \
 		  -I"$HARNESS_DIR" \
 		  -c $HARNESS -o "$OUT/$NAME.o"
 	  $LINK_CC "$OUT/$NAME.o" -o "$OUT/$NAME" \

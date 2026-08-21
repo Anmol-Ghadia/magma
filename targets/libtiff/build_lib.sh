@@ -22,9 +22,7 @@ cd "$TARGET/repo"
 ./autogen.sh
 ./configure --disable-shared --enable-static --prefix="$WORK"
 make -j$(nproc) clean
-script -q -e -c "make" "$OUT/build_output.log"
+script -q -e -c "make install" "$OUT/build_output.log"
 # script instead of direct make because afl does not print the # of instrumented
 # locations unless a stderr is attached
-make install
 
-cp "$WORK/bin/tiffcp" "$OUT/"
