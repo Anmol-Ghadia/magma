@@ -39,10 +39,12 @@ if [ ! -z "$HARNESSES" ]; then
 	  case "$EXT" in
 		  c)
 			  COMPILE_CC="$RAW_CC"
+			  COMPILE_FLAGS="$CFLAGS"
 			  LINK_CC="$CC"
 			  ;;
 		  cc|cpp)
 			  COMPILE_CC="$RAW_CXX"
+			  COMPILE_FLAGS="$CXXFLAGS"
 			  LINK_CC="$CXX"
 			  ;;
 		  *)
@@ -51,15 +53,15 @@ if [ ! -z "$HARNESSES" ]; then
 			  ;;
 	  esac
 
-	  $COMPILE_CC -I"$WORK/include" \
+	  $COMPILE_CC $COMPILE_FLAGS -I"$WORK/include" \
 		  -I"$HARNESS_DIR" \
 		  -c $HARNESS -o "$OUT/$NAME.o"
-	  $LINK_CC "$OUT/$NAME.o" -o "$OUT/$NAME" \
-		  -Wl,--whole-archive \
-		  $WORK/lib/libtiffxx.a $WORK/lib/libtiff.a \
-		  -Wl,--no-whole-archive \
-		  -lz -ljpeg -Wl,-Bstatic -llzma -Wl,-Bdynamic \
-		  $LDFLAGS $LIBS
+		$LINK_CC "$OUT/$NAME.o" -o "$OUT/$NAME" \
+			-Wl,--whole-archive \
+			$WORK/lib/libtiffxx.a $WORK/lib/libtiff.a \
+			-Wl,--no-whole-archive \
+			-lz -ljpeg -Wl,-Bstatic -llzma -Wl,-Bdynamic \
+			$LDFLAGS $LIBS
   done
 
 else
