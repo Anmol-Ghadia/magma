@@ -19,7 +19,7 @@ cd "$TARGET/repo"
 export WORK="$TARGET/work"
 rm -rf "$WORK"
 mkdir -p "$WORK"
-cd "$WORK"
+cd "$TARGET/repo"
 
 export CFLAGS="$CFLAGS -DSQLITE_MAX_LENGTH=128000000 \
                -DSQLITE_MAX_SQL_LENGTH=128000000 \
@@ -37,11 +37,13 @@ export CFLAGS="$CFLAGS -DSQLITE_MAX_LENGTH=128000000 \
 	       -DSQLITE_ENABLE_UNLOCK_NOTIFY \
 	       -DSQLITE_ENABLE_SESSION"
 
-"$TARGET/repo"/configure --disable-shared --enable-rtree
+"$TARGET/repo"/configure --disable-shared \
+	--enable-rtree \
+	--prefix="$WORK" \
+	--enable-session
 make clean
-script -q -e -c "make" "$OUT/build_output.log"
+script -q -e -c "make install" "$OUT/build_output.log"
+#cp "$TARGET/repo/ext/session/sqlite3session.h" "$WORK/include/sqlite3session.h"
 # script instead of direct make because afl does not print the # of instrumented
 # locations unless a stderr is attached
-
-cp sqlite3.o "$OUT/"
 

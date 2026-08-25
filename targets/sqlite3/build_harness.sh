@@ -14,10 +14,8 @@ if [ ! -d "$TARGET/repo" ]; then
 fi
 
 # build the sqlite3 library
+WORK="$TARGET/work"
 cd "$TARGET/repo"
-
-export WORK="$TARGET/work"
-cd "$WORK"
 
 if [ ! -z "$HARNESSES" ]; then
   HARNESS_DIR="$TARGET/$HARNESSES"
@@ -25,6 +23,7 @@ if [ ! -z "$HARNESSES" ]; then
   # TODO(Mayant): Do I want to keep this configurable? I need a non-AFL C compiler
   # here, OR use an instrumentation denylist.
   RAW_CC="clang"
+  RAW_CXX="clang++"
 
   if [ ! -d "$HARNESS_DIR" ]; then
     echo "harness directory $HARNESS_DIR does not exist."
@@ -32,13 +31,42 @@ if [ ! -z "$HARNESSES" ]; then
   fi
 
   echo "Building custom harnesses"
-  for HARNESS in $HARNESS_DIR/*.c; do
-    NAME=$(basename $HARNESS .c)
-    $RAW_CC $CFLAGS -I. -c $HARNESS -o "$OUT/$NAME.o"
-    $CC "$OUT/$NAME.o" -o "$OUT/$NAME" \
-	    -Wl,--whole-archive "$OUT/sqlite3.o" -Wl,--no-whole-archive \
-	    $LDFLAGS $LIBS -pthread -ldl -lm
-  done
+  for HARNESS in "$HARNESS_DIR"/*.c "$HARNESS_DIR"/*.cc "$HARNESS_DIR"/*.cpp; do
+	  [ -e "$HARNESS" ] || continue   # skip if a glob pattern matched nothing
+
+	  EXT="${HARNESS##*.}"
+	  NAME=$(basename "$HARNESS" ".$EXT")
+
+	  case "$EXT" in
+		  c)
+			  COMPILE_CC="$RAW_CC"
+			  COMPILE_FLAGS="$CFLAGS"
+			  LINK_CC="$CC"
+			  ;;
+		  cc|cpp)
+			  COMPILE_CC="$RAW_CXX"
+			  COMPILE_FLAGS="$CXXFLAGS"
+			  LINK_CC="$CXX"
+			  ;;
+		  *)
+			  echo "Unknown extension for $HARNESS, skipping"
+			  continue
+			  ;;
+	  esac
+	  COMPILE_FLAGS="$COMPILE_FLAGS -DSQLITE_ENABLE_SESSION -DSQLITE_ENABLE_PREUPDATE_HOOK"
+
+
+	  echo "==============COMPILE $(ls $WORK/include/)"
+	  $COMPILE_CC $COMPILE_FLAGS -I"$WORK/include/" \
+		  -c $HARNESS -o "$OUT/$NAME.o"
+	  echo "============== LINK $(ls $WORK/include/)"
+	    $LINK_CC "$OUT/$NAME.o" -o "$OUT/$NAME" \
+		    -Wl,--whole-archive \
+		    $WORK/lib/libsqlite3.a \
+		    -Wl,--no-whole-archive \
+		    -pthread -ldl -lm \
+		    $LDFLAGS $LIBS
+	  done
 
 else
   echo "Harness missing"
