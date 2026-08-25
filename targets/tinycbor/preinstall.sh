@@ -1,7 +1,7 @@
 #!/bin/bash
 
 apt-get update && \
-    apt-get install -y git make libtool
+    apt-get install -y git make libtool libcjson
 
 # newer cmake version
 wget -q https://github.com/Kitware/CMake/releases/download/v3.27.9/cmake-3.27.9-linux-x86_64.sh \

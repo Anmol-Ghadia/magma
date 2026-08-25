@@ -14,22 +14,17 @@ if [ ! -d "$TARGET/repo" ]; then
     exit 1
 fi
 
+WORK="$TARGET/work"
+rm -rf $WORK
+mkdir -p $WORK
+
 # build the libpng library
 cd "$TARGET/repo"
 
-WORK="$TARGET/temp"
-rm -rf $WORK
-mkdir -p $WORK
-cd $WORK
-
-cmake ../repo
-echo "building tinycbor with CC=($CC) and CXX=($CXX). Build output at SHARED=($SHARED)"
-export AFL_DEBUG=1
+cmake "$TARGET/repo" -DCMAKE_INSTALL_PREFIX="$WORK" \
+	-DWITH_CBOR2JSON=ON
 make -j$(nproc) clean
-#make -j$(nproc) tinycbor > "$OUT/build_output.log" 2>&1
-script -q -e -c "make" "$OUT/build_output.log"
+script -q -e -c "make install" "$OUT/build_output.log"
 # script instead of direct make because afl does not print the # of instrumented
 # locations unless a stderr is attached
-
-cp libtinycbor.a "$OUT/"
 
