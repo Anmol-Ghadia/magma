@@ -126,9 +126,22 @@ def generate_monitor_df(dumpdir, campaign):
             "log file for more information: %s", name, logfile
         )
 
+    #print("="*50+"rows"+"="*50)
+    #print(rows[:100])
+    #print("="*100)
     df = pd.DataFrame(rows)
-    df.set_index('TIME', inplace=True)
-    df.fillna(0, inplace=True)
+    #print("="*50+"df"+"="*50)
+    #print(df)
+    #print("="*100)
+    try:
+        df.set_index('TIME', inplace=True)
+    except Exception as ex:
+        print(df)
+        raise ex
+    fill_values = {col: "0" if dtype == "string" else 0
+               for col, dtype in df.dtypes.items()}
+    df.fillna(fill_values, inplace=True)
+    #df.fillna(0, inplace=True)
     df = df.astype(int)
     del rows
     return df

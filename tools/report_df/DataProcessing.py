@@ -310,7 +310,8 @@ def bug_survival_data(bd):
                     'Metric': metric,
                     'BugID': bug
                 })
-                group = group.append(new_row, ignore_index=True)
+                #group = group.append(new_row, ignore_index=True)
+                group = pd.concat([group, new_row], ignore_index=True)
             return group
 
         name = group.name
@@ -343,11 +344,17 @@ def bug_survival_data(bd):
             .apply(fit_kmf_all, N)
 
     # get the mean survival time for every (target, program, bug, fuzzer, metric) tuple
-    means = kmf.applymap(lambda k: restricted_mean_survival_time(k, bd.duration))
+    #means = kmf.applymap(lambda k: restricted_mean_survival_time(k, bd.duration))
+    means = kmf.map(lambda k: restricted_mean_survival_time(k, bd.duration))
     # re-arrange the dataframe such that the columns are the metrics
-    means = means.stack(level=0)
+    means = means.unstack('Metric')
     # for every (target, bug, fuzzer) tuple, select the row corresponding to the program where the bug was triggered earliest
-    means = means.loc[means.groupby(['Target', 'BugID', 'Fuzzer'])[Metric.TRIGGERED.value].idxmin()]
+    #means = means.loc[means.groupby(['Target', 'BugID', 'Fuzzer'])[Metric.TRIGGERED.value].idxmin()]
+    means = means.loc[
+    means.groupby(['Target', 'BugID', 'Fuzzer'])[Metric.TRIGGERED.value]
+         .idxmin()
+         .dropna()
+    ]
     # re-arrange dataframe so that index is (target, bug) and columns are (fuzzer, metric)
     means = means.droplevel('Program').stack().unstack(-2).unstack()
 

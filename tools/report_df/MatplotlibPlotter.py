@@ -300,7 +300,11 @@ def bug_survival_plots(bd, outdir):
                                 Metric.TRIGGERED.value: x[Metric.TRIGGERED.value].mean()
                             }
                         ))
-    agg.columns = pd.MultiIndex.from_product([['Aggregate'], [Metric.REACHED.value, Metric.TRIGGERED.value]])
+    #agg.columns = pd.MultiIndex.from_product([['Aggregate'], [Metric.REACHED.value, Metric.TRIGGERED.value]])
+    agg.columns = pd.MultiIndex.from_product(
+            [['Aggregate'], [Metric.REACHED.value, Metric.TRIGGERED.value]],
+            names=['Fuzzer', 'Metric']
+            )
     means = means.join(agg)
 
     means = means.stack() \
@@ -390,17 +394,20 @@ def bug_survival_plots(bd, outdir):
     hiliter.template = style_tpl
     heatmap.template = style_tpl
 
-    table_html = re.sub(r'colspan=(\d+)', r'colspan="\1"', styler.render())
+    #table_html = re.sub(r'colspan=(\d+)', r'colspan="\1"', styler.render())
+    table_html = re.sub(r'colspan=(\d+)', r'colspan="\1"', styler.to_html())
     table_name, path = output(outdir, 'data', 'mean_survival.html')
     with open(path, 'w') as f:
         f.write(table_html)
 
-    hiliter_css = '\n'.join(hiliter.render().split('\n')[1:-1]) + '}'
+    #hiliter_css = '\n'.join(hiliter.render().split('\n')[1:-1]) + '}'
+    hiliter_css = '\n'.join(hiliter.to_html().split('\n')[1:-1]) + '}'
     hiliter_name, path = output(outdir, 'css', 'survival_hiliter.css')
     with open(path, 'w') as f:
         f.write(hiliter_css)
 
-    heatmap_css = '\n'.join(heatmap.render().split('\n')[1:-1]) + '}'
+    #heatmap_css = '\n'.join(heatmap.render().split('\n')[1:-1]) + '}'
+    heatmap_css = '\n'.join(heatmap.to_html().split('\n')[1:-1]) + '}'
     heatmap_name, path = output(outdir, 'css', 'survival_heatmap.css')
     with open(path, 'w') as f:
         f.write(heatmap_css)
@@ -411,6 +418,8 @@ def bug_survival_plots(bd, outdir):
     def plot_target_program_bug(series):
         fig, ax = plt.subplots(figsize=(10,6))
         for ((fuzzer, metric), kmf) in series.items():
+            if pd.isna(kmf):
+                continue
             kmf.plot(
                 ax=ax, ci_show=True, legend=False,
                 marker=metric_markers[metric],
@@ -437,7 +446,9 @@ def bug_survival_plots(bd, outdir):
         plt.close(fig)
         return name
 
-    outfiles = kmf.apply(plot_target_program_bug, axis=1)
+    #outfiles = kmf.apply(plot_target_program_bug, axis=1)
+    kmf_df = kmf.unstack(['Fuzzer', 'Metric'])
+    outfiles = kmf_df.apply(plot_target_program_bug, axis=1)
 
     fig_legend = plt.figure()
     legend_lines = [Line2D([0], [0], label=fuzzer, color=fuzzer_colors[fuzzer])
