@@ -126,13 +126,7 @@ def generate_monitor_df(dumpdir, campaign):
             "log file for more information: %s", name, logfile
         )
 
-    #print("="*50+"rows"+"="*50)
-    #print(rows[:100])
-    #print("="*100)
     df = pd.DataFrame(rows)
-    #print("="*50+"df"+"="*50)
-    #print(df)
-    #print("="*100)
     try:
         df.set_index('TIME', inplace=True)
     except Exception as ex:
@@ -141,7 +135,6 @@ def generate_monitor_df(dumpdir, campaign):
     fill_values = {col: "0" if dtype == "string" else 0
                for col, dtype in df.dtypes.items()}
     df.fillna(fill_values, inplace=True)
-    #df.fillna(0, inplace=True)
     df = df.astype(int)
     del rows
     return df
@@ -215,17 +208,51 @@ def default_to_regular(d):
         d = {k: default_to_regular(v) for k, v in d.items()}
     return d
 
+def get_program_prefix(program):
+    """
+    Group fuzz driver names by the tool that generated them.
+    e.g. "promefuzz_1_fuzz_driver_58" -> "promefuzz"
+         "opencode_3_fuzz_driver_12"  -> "opencode"
+    Adjust this if your naming scheme differs.
+    """
+    return program.split("_", 1)[0]
+
+
+def merge_counts(existing, new, agg):
+    """
+    Merge two {bug_id: count} dicts using the given aggregation function
+    for bug_ids present in both.
+    """
+    merged = dict(existing)
+    for bug_id, count in new.items():
+        merged[bug_id] = agg(merged[bug_id], count) if bug_id in merged else count
+    return merged
+
+
 def get_experiment_summary(experiment):
     summary = ddr()
     for fuzzer, f_data in experiment.items():
         for target, t_data in f_data.items():
             for program, p_data in t_data.items():
+                prefix = get_program_prefix(program)
                 for run, df in p_data.items():
                     reached, triggered = get_ttb_from_df(df)
-                    summary[fuzzer][target][program][run] = {
-                        "reached": reached,
-                        "triggered": triggered
-                    }
+
+                    existing = summary[fuzzer][target][prefix].get(run)
+                    if existing is None:
+                        summary[fuzzer][target][prefix][run] = {
+                            "reached": reached,
+                            "triggered": triggered
+                        }
+                    else:
+                        # "reached" values tend to be stable constants across
+                        # drivers rather than true cumulative counts, so take max.
+                        # "triggered" counts are combined by summing, treating
+                        # each driver's triggers as additional independent evidence.
+                        summary[fuzzer][target][prefix][run] = {
+                            "reached": merge_counts(existing["reached"], reached, min),
+                            "triggered": merge_counts(existing["triggered"], triggered, min)
+                        }
     return default_to_regular(summary)
 
 def configure_verbosity(level):

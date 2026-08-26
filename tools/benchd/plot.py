@@ -131,6 +131,8 @@ def main():
                 yerr=[lower_err, upper_err], capsize=3, error_kw={"linewidth": 1},
             )
             bar_index += 1
+    ax.axhline(1270, color=prefix_colors['promefuzz'], linestyle="--", linewidth=1, label="back-computed time per harness for promefuzz")
+    ax.axhline(14400, color=prefix_colors['opencode'], linestyle="--", linewidth=1, label="back-computed time per harness for opencode")
 
     ax.set_yscale("log")
     ax.set_xticks(x)
